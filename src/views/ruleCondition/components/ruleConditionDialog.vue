@@ -20,38 +20,64 @@
 				</el-select>
 			</el-form-item>
 			<el-form-item class="item-logic" label="策略逻辑：" props="logic" :label-width="120">
-				<el-radio v-model="logic" value="OR" class="item-logic-radio" label="满足以下任意条件时生效"></el-radio>
-				<el-radio v-model="logic" value="AND" class="item-logic-radio" label="满足全部条件时生效"></el-radio>
+				<el-radio v-model="shop_conditions.logic" value="OR" class="item-logic-radio" label="满足以下任意条件时生效"></el-radio>
+				<el-radio v-model="shop_conditions.logic" value="AND" class="item-logic-radio" label="满足全部条件时生效"></el-radio>
 			</el-form-item>
 			<div class="conditions-content">
-				<div class="condition-logic">
-          <span>{{ logic }}</span>
+				<div v-if="mockData.conditions.length > 1" class="condition-logic">
+          <span>{{ shop_conditions.logic }}</span>
         </div>
-        <div class="conditions-item" >
+        <div class="conditions-item">
           <div v-for="(item, index) in mockData.conditions" :key="index">
-            <rule-condition-item :condition="item"></rule-condition-item>
+            <div v-if="!item.conditions">
+              <rule-condition-item type="primary" :condition.sync="item"></rule-condition-item>
+            </div>
+            <div v-else class="branch-wrap">
+              <div class="branch-top">
+                <div class="logic-tip">
+                  <span>分支条件组：</span>
+                  <span>{{ logicTip }}</span>
+                </div>
+                <el-icon class="icon">
+                  <Delete />
+                </el-icon>
+              </div>
+              <div class="branch-group">
+                <div class="condition-logic">
+                  <span>{{ shop_conditions.logic === 'AND' ? 'OR': 'AND' }}</span>
+                </div>
+                <div class="branch-conditions">
+                  <div v-for="(it, idx) in item.conditions" :key="idx">
+                    <rule-condition-item type="branch" :condition.sync="it"></rule-condition-item>
+                  </div>
+                  <div class="add-btn">+ 添加分支条件</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 			</div>
-			<div>
-				<el-button></el-button>
-				<el-button></el-button>
+			<div class="add-btns">
+        <div class="add-btn">+ 添加策略条件</div>
+        <div class="add-btn">+ 添加分支条件组</div>
 			</div>
 		</el-form>
-    <div class="data-preview">
+    <!-- <div class="data-preview">
       <h2>规则数据预览</h2>
       <pre>{{ JSON.stringify(mockData, null, 2) }}</pre>
-    </div>
+    </div> -->
 	</el-dialog>
 </template>
 
 <script>
 import RuleConditionItem from './ruleConditionItem.vue';
+import { Delete } from '@element-plus/icons-vue';
 
 export default {
 	name: 'RuleConditionDialog',
 	components: {
-    RuleConditionItem
+    RuleConditionItem,
+    Delete
   },
 	props: {
 		title: {
@@ -65,10 +91,13 @@ export default {
 	data() {
 		return {
 			dialogVisible: true,
-			logic: 'AND',
 			form: {
 				ruleName: '',
+        priority: null,
 			},
+      shop_conditions: {
+        conditions: [{}],
+      },
       mockData: {
         logic: "AND",
         conditions: [
@@ -102,7 +131,21 @@ export default {
         ]
       }
 		}
-	}
+	},
+  computed: {
+    logicTip() {
+      return this.shop_conditions.logic === 'AND' ? '满足以下任意条件时生效' : '满足全部条件时生效';
+    }
+  },
+  methods: {
+    handleSubmit() {
+      const payload = {
+        ...this.form,
+        shop_conditions: this.shop_conditions
+      }
+      console.log('提交表单', payload);
+    }
+  }
 }
 </script>
 
@@ -156,12 +199,16 @@ export default {
 
 .condition-logic {
   display: flex;
+  flex-shrink: 0;
   justify-content: center;
   align-items: center;
   padding: 10px;
-  width: 50px;
+  width: 30px;
 
   span {
+    display: inline-block;
+    min-width: 35px;
+    text-align: center;
     background: #1da1ff;
     color: #fff;
     padding: 5px;
@@ -172,9 +219,55 @@ export default {
 .conditions-item {
   width: 800px;
   display: block;
-  flex-direction: column;
   align-items: center;
   margin: 0;
+}
+
+.branch-wrap {
+  width: 720px;
+  display: block;
+  align-items: center;
+  background-color: #f7f7f7;
+  padding: 10px;
+  margin: 10px;
+  border-radius: 5px;
+
+  .branch-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+  }
+}
+
+.logic-tip {
+  margin-left: 5px;
+
+  span:nth-child(2) {
+    color: #9f9f9f;
+  }
+}
+
+.branch-group {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.branch-conditions {
+  display: block;
+  align-items: center;
+  margin: 0;
+}
+
+.add-btns {
+  display: flex;
+  margin: 0 10px;
+}
+
+.add-btn {
+  color: #1da1ff;
+  padding: 0 10px;
 }
 
 pre {

@@ -1,9 +1,9 @@
 <template>
   <!-- 主条件 -->
-  <div v-if="!condition.conditions" class="condition-content">
+  <div :class="{'condition-content': !isBranch, 'branch-condition': isBranch}">
     <div class="left">
-      <el-select v-model="condition.field" class="select" placeholder="请选择" @select="handleSelectField">
-        <el-option class="option" v-for="it in [{label: '店铺版本', value: 1}]" :label="it.label" :value="it.value"></el-option>
+      <el-select v-model="condition.field" class="select" placeholder="请选择" @change="handleSelectField">
+        <el-option class="option" v-for="it in [{label: '店铺版本', value: 1}, {label: '风险等级', value: 2}]" :label="it.label" :value="it.value"></el-option>
       </el-select>
       <el-select v-model="condition.operator" class="select" placeholder="请选择">
         <el-option class="option" v-for="it in [{label: '等于', value: '='}]" :label="it.label" :value="it.value"></el-option>
@@ -13,38 +13,47 @@
       </el-select>
     </div>
     <div class="right">
-      <el-icon>
+      <el-icon v-if="!isBranch">
         <Delete />
+      </el-icon>
+      <el-icon v-else>
+        <Close />
       </el-icon>
     </div>
   </div>
-  <!-- 分支条件 -->
-  <div v-else></div>
 </template>
 
 <script lang="js">
-import { Delete } from '@element-plus/icons-vue';
+import { Delete, Close } from '@element-plus/icons-vue';
 
 export default {
   name: 'RuleConditionItem',
   components: {
-    Delete 
+    Delete,
+    Close
   },
   props: {
     condition: {
       type: Object,
       required: true
+    },
+    type: {
+      type: String,
+      default: 'primary'
     }
-  },
-  setup() {
-    return {};
   },
   data() {
     return {
     }
   },
+  computed: {
+    isBranch() {
+      return this.type === 'branch';
+    }
+  },
   methods: {
     handleSelectField(value) {
+      console.log('----', value)
       this.$emit('update:condition', value);
     }
   }
@@ -53,20 +62,30 @@ export default {
 
 <style lang="scss" scoped>
 .condition-content {
+  width: 720px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f7f7f7;
+  background-color: #f7f7f7;
   padding: 10px;
   margin: 10px;
   border-radius: 5px;
+}
+
+.branch-condition {
+  width: 670px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f7f7f7;
+  padding: 10px 0;
 }
 
 .left {
 
   .select {
     width: 180px;
-    background: #f7f7f7;
+    background-color: #f7f7f7;
     padding: 0 10px;
   }
 }
